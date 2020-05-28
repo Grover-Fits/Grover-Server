@@ -1,5 +1,5 @@
 # Grover-Server - Fits Image Extractor
-
+[![Build Status](https://ci.templetron.io/api/badges/Grover/grover-server/status.svg)](https://ci.templetron.io/Grover/grover-server)
 Grover allows you to visualize your fits image files as well as provide the metadata contained within each file: 
 - Visualize and store fits files + images
 - View metadata extracted from file
