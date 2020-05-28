@@ -7,4 +7,5 @@ steps:
   commands:
   - go test
   - make start
+  - "curl -d '{\"msg\":\"testing123123\"}' -H 'Content-Type: application/json' http://localhost:8081/api/test"
   - make stop
