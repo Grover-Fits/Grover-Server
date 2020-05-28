@@ -1,0 +1,13 @@
+kind: pipeline
+name: testNbuild
+
+steps:
+- name: test
+  image: golang:1.14
+  commands:
+  - go test
+
+- name: build
+  image: golang:1.14
+  commands:
+  - go build
