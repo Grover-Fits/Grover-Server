@@ -7,6 +7,7 @@ require (
 	github.com/golang/protobuf v1.4.1
 	github.com/gorilla/handlers v1.4.2
 	github.com/grpc-ecosystem/grpc-gateway v1.14.5
+	github.com/joho/godotenv v1.3.0
 	github.com/siravan/fits v0.0.0-20140212211533-ab9b19d2265a
 	golang.org/x/net v0.0.0-20200506145744-7e3656a0809f // indirect
 	golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 // indirect

@@ -14,11 +14,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/attron/grover-server/api"
 	"github.com/golang/glog"
 	"github.com/gorilla/handlers"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/joho/godotenv"
 	"github.com/siravan/fits"
 	"google.golang.org/grpc"
 )
@@ -26,15 +28,27 @@ import (
 // Metadata object
 type Metadata struct {
 	Filename string
-	Meta     string
+	Metas    []string
 	Time     int64
-	Image    string
+	Images   []string
 	Table    string
 	Array    string
 }
 
+var meta Metadata
+
+// ClientPath -- used to find the locaiton to store images, video, and metadata from accessable location for client
+var ClientPath = readEnvFile("CLIENT_PATH")
+
+func readEnvFile(key string) string {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	return os.Getenv(key)
+}
+
 func readFits(r io.Reader, fn string) Metadata {
-	var meta Metadata
 	var name string
 	var t string
 	meta.Filename = fn
@@ -46,7 +60,8 @@ func readFits(r io.Reader, fn string) Metadata {
 
 	for i, h := range u {
 		//set filename
-		out := fmt.Sprintf("client/images/%s_%d", name, i)
+		out := fmt.Sprintf("/images/%s_%d", name, i)
+		fullOut := fmt.Sprintf("%s%s", ClientPath, out)
 		// deciding how to handle each HDU
 		// XTENSION=IMAGE || SIMPLE=true <- process as image
 		// XTENSION=TABLE || XTENSION=BINTABLE <- process as table
@@ -57,17 +72,17 @@ func readFits(r io.Reader, fn string) Metadata {
 			t = "table"
 			// 1D array vs nD array
 			if len(h.Naxis) == 1 {
-				saveArray(h, out)
+				saveArray(h, fullOut)
 			} else {
-				saveTable(h, out)
+				saveTable(h, fullOut)
 			}
 		} else {
 			t = "Unknown"
 			fmt.Println("Unsupported Header Data Unit")
 		}
-
-		meta.Meta = name + ".txt"
-		metaF, _ := os.OpenFile("client/images/"+name+".txt", os.O_CREATE|os.O_WRONLY, 0644)
+		iStr := strconv.Itoa(i)
+		meta.Metas = append(meta.Metas, "/images/meta/"+name+"_"+iStr+".txt")
+		metaF, _ := os.OpenFile(ClientPath+meta.Metas[i], os.O_CREATE|os.O_WRONLY, 0644)
 		defer metaF.Close()
 		fmt.Fprintf(metaF, "***************************************\n")
 		fmt.Fprintf(metaF, "HEADER:\t%d\tTYPE:%s\n", i, t)
@@ -79,8 +94,6 @@ func readFits(r io.Reader, fn string) Metadata {
 		}
 	}
 
-	meta.Meta = "images/" + meta.Meta
-	meta.Image = "images/" + name + "_0.png"
 	return meta
 }
 
@@ -126,9 +139,10 @@ func saveImage(h *fits.Unit, name string) {
 			}
 		}
 
-		g, _ := os.Create(s + ".png")
+		g, _ := os.Create(ClientPath + s + ".png")
 		defer g.Close()
 		png.Encode(g, img)
+		meta.Images = append(meta.Images, s+".png")
 	}
 }
 
