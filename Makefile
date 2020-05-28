@@ -1,7 +1,6 @@
 .DEFAULT_GOAL := help
 
 SERVER_PID := grover.pid
-CLIENT_PID := client.pid
 .PHONY: 
 
 RESET  = \033[0m
@@ -12,21 +11,13 @@ LINE   = $(PURPLE)--------------------------------------------------------------
 build: ## build grpc server
 	go build
 
-start-server: build ## start grpc server
+start: build ## start grpc server
 	./grover & echo $$! > $(SERVER_PID);
 
-start-client: ## start client
-	python2 -m SimpleHTTPServer 8085 & echo $$! > $(CLIENT_PID);
 
-start-all: start-server start-client ## start grpc server and client
-
-stop-server: ## stop grpc server
+stop: ## stop grpc server
 	kill `cat $(SERVER_PID)` && rm -rf $(SERVER_PID)
 
-stop-client: ## stop client
-	kill `cat $(CLIENT_PID)` && rm -rf $(CLIENT_PID)
-
-stop-all: stop-server stop-client ## stop grpc server and client
 
 help: ## That's me!
 	@echo
