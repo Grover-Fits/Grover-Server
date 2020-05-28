@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/attron/grover/api"
+	"github.com/attron/grover-server/api"
 	"google.golang.org/grpc"
 )
 
