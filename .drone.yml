@@ -5,6 +5,7 @@ steps:
 - name: test, build, and start
   image: golang:1.14
   commands:
+  - echo 'CLIENT_PATH=test_path' > .env
   - go test
   - make start
   - "curl -d '{\"msg\":\"testing123123\"}' -H 'Content-Type: application/json' http://localhost:8081/api/test"
