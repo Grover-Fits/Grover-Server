@@ -5,7 +5,5 @@ steps:
 - name: test, build, and start
   image: golang:1.14
   commands:
-  - go test
-  - go build
   - make start
   - make stop
