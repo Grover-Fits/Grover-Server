@@ -1,13 +1,11 @@
 kind: pipeline
-name: testNbuild
+name: server-running
 
 steps:
-- name: test
+- name: test, build, and start
   image: golang:1.14
   commands:
   - go test
-
-- name: build
-  image: golang:1.14
-  commands:
   - go build
+  - make start
+  - make stop
