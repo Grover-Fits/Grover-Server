@@ -16,6 +16,7 @@ import (
 
 type server struct{}
 
+// GetMovie -- send request to generate movie from images
 func (*server) GetMovie(ctx context.Context, req *api.GetMovieRequest) (*api.GetMovieResponse, error) {
 	log.Println("Received GetMovie request!")
 	files := req.GetFilePath()
@@ -30,6 +31,7 @@ func (*server) GetMovie(ctx context.Context, req *api.GetMovieRequest) (*api.Get
 	}, nil
 }
 
+// UploadFitsFiles -- called when new fits files have been uploaded
 func (*server) UploadFitsFiles(ctx context.Context, req *api.UploadFitsFilesRequest) (*api.UploadFitsFilesResponse, error) {
 	log.Println("Received UploadFile request!")
 	file := req.GetFileContent()
