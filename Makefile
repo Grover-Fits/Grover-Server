@@ -8,6 +8,9 @@ PURPLE = \033[0;35m
 GREEN  = \033[0;32m
 LINE   = $(PURPLE)-------------------------------------------------------------------------------------------------$(RESET)
 
+configure: ## setup .env file
+	./configure.sh
+
 build: ## build grpc server
 	go build -o grover
 
@@ -17,7 +20,6 @@ start: build ## start grpc server
 
 stop: ## stop grpc server
 	kill `cat $(SERVER_PID)` && rm -rf $(SERVER_PID)
-
 
 help: ## That's me!
 	@echo
