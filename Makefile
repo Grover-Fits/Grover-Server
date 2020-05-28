@@ -9,7 +9,7 @@ GREEN  = \033[0;32m
 LINE   = $(PURPLE)-------------------------------------------------------------------------------------------------$(RESET)
 
 build: ## build grpc server
-	go build
+	go build -o grover
 
 start: build ## start grpc server
 	./grover & echo $$! > $(SERVER_PID);
