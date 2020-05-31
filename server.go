@@ -20,12 +20,17 @@ type server struct{}
 func (*server) GetMovie(ctx context.Context, req *api.GetMovieRequest) (*api.GetMovieResponse, error) {
 	log.Println("Received GetMovie request!")
 	files := req.GetFilePath()
-	out, err := exec.Command("./convert-to-video.sh", files).Output()
+	// need to break out files and append client path so command can locate the images
+	sepFiles := strings.Fields(files)
+	sendFiles := ""
+	for _, s := range sepFiles {
+		sendFiles = sendFiles + " " + ClientPath + s
+	}
+	out, err := exec.Command("./convert-to-video.sh", sendFiles, ClientPath).Output()
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println("Received files: " + files)
-	log.Println("Output from command: " + string(out))
+	log.Println("Received files for movie generation: " + sendFiles)
 	return &api.GetMovieResponse{
 		MovLoc: string(out),
 	}, nil
@@ -43,12 +48,13 @@ func (*server) UploadFitsFiles(ctx context.Context, req *api.UploadFitsFilesRequ
 	}
 
 	s := strings.NewReader(string(sDec))
-	fmt.Println("attempting to send fits data . . .")
-	meta := readFits(s, name)
+	fmt.Println("attempting to send fits data . . .", name)
+	meta := handleIncoming(s, name)
 	out, err := json.Marshal(meta)
 	if err != nil {
 		log.Fatalf("Failed to retireve metadata from file!")
 	}
+	meta = Metadata{}
 	return &api.UploadFitsFilesResponse{
 		Metadata: string(out),
 	}, nil

@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"image"
@@ -35,8 +36,6 @@ type Metadata struct {
 	Array    string
 }
 
-var meta Metadata
-
 // ClientPath -- used to find the locaiton to store images, video, and metadata from accessable location for client
 var ClientPath = readEnvFile("CLIENT_PATH")
 
@@ -48,11 +47,16 @@ func readEnvFile(key string) string {
 	return os.Getenv(key)
 }
 
-func readFits(r io.Reader, fn string) Metadata {
-	var name string
+func handleIncoming(r io.Reader, fn string) Metadata {
+	var metaD Metadata
+	metaD.Images = []string{}
+	metaD.Filename = fn
+	metaD = readFits(r, metaD)
+	return metaD
+}
+
+func readFits(r io.Reader, meta Metadata) Metadata {
 	var t string
-	meta.Filename = fn
-	name = meta.Filename
 	u, e := fits.Open(r)
 	if e != nil {
 		log.Fatal(e)
@@ -60,14 +64,14 @@ func readFits(r io.Reader, fn string) Metadata {
 
 	for i, h := range u {
 		//set filename
-		out := fmt.Sprintf("/images/%s_%d", name, i)
+		out := fmt.Sprintf("/images/%s_%d", meta.Filename, i)
 		fullOut := fmt.Sprintf("%s%s", ClientPath, out)
 		// deciding how to handle each HDU
 		// XTENSION=IMAGE || SIMPLE=true <- process as image
 		// XTENSION=TABLE || XTENSION=BINTABLE <- process as table
 		if h.HasImage() {
 			t = "image"
-			saveImage(h, out)
+			meta = saveImage(h, out, meta)
 		} else if h.HasTable() {
 			t = "table"
 			// 1D array vs nD array
@@ -81,7 +85,7 @@ func readFits(r io.Reader, fn string) Metadata {
 			fmt.Println("Unsupported Header Data Unit")
 		}
 		iStr := strconv.Itoa(i)
-		meta.Metas = append(meta.Metas, "/images/meta/"+name+"_"+iStr+".txt")
+		meta.Metas = append(meta.Metas, "/images/meta/"+meta.Filename+"_"+iStr+".txt")
 		metaF, _ := os.OpenFile(ClientPath+meta.Metas[i], os.O_CREATE|os.O_WRONLY, 0644)
 		defer metaF.Close()
 		fmt.Fprintf(metaF, "***************************************\n")
@@ -93,7 +97,11 @@ func readFits(r io.Reader, fn string) Metadata {
 			fmt.Fprintf(metaF, "%s: %v\n", key, value)
 		}
 	}
-
+	out, err := json.Marshal(meta)
+	if err != nil {
+		log.Fatalf("Failed to retireve metadata from file!")
+	}
+	log.Printf("Returning the following Metadata: %s", string(out))
 	return meta
 }
 
@@ -107,7 +115,7 @@ func saveArray(h *fits.Unit, name string) {
 	}
 }
 
-func saveImage(h *fits.Unit, name string) {
+func saveImage(h *fits.Unit, name string, meta Metadata) Metadata {
 	n := len(h.Naxis)
 	maxis := make([]int, n)
 	img := image.NewGray16(image.Rect(0, 0, h.Naxis[0], h.Naxis[1]))
@@ -144,6 +152,7 @@ func saveImage(h *fits.Unit, name string) {
 		png.Encode(g, img)
 		meta.Images = append(meta.Images, s+".png")
 	}
+	return meta
 }
 
 func saveTable(h *fits.Unit, name string) {
