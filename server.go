@@ -36,6 +36,27 @@ func (*server) GetMovie(ctx context.Context, req *api.GetMovieRequest) (*api.Get
 	}, nil
 }
 
+func (*server) GetMosaic(ctx context.Context, req *api.GetMosaicRequest) (*api.GetMosaicResponse, error) {
+	log.Println("Received GetMosaic request!")
+	files := req.GetFilePath()
+	count := req.GetCount()
+	// need to break out files and append client path so command can locate the images
+	sepFiles := strings.Fields(files)
+	sendFiles := ""
+	for _, s := range sepFiles {
+		sendFiles = sendFiles + " -i " + ClientPath + s
+	}
+	out, err := exec.Command("./convert-to-mosaic.sh", sendFiles, count, ClientPath).Output()
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println("Received files for mosaic generation: " + sendFiles)
+	log.Println("Received count for mosaic generation: " + count)
+	return &api.GetMosaicResponse{
+		MosLoc: string(out),
+	}, nil
+}
+
 // UploadFitsFiles -- called when new fits files have been uploaded
 func (*server) UploadFitsFiles(ctx context.Context, req *api.UploadFitsFilesRequest) (*api.UploadFitsFilesResponse, error) {
 	log.Println("Received UploadFile request!")
