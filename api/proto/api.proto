@@ -36,10 +36,26 @@ message GetMovieResponse {
     string movLoc = 1;
 }
 
+message GetMosaicRequest {
+    string filePath = 1;
+    string count = 2;
+}
+
+message GetMosaicResponse {
+    string mosLoc = 1;
+}
+
 service fitsService {
     rpc GetMovie(GetMovieRequest) returns (GetMovieResponse) {
         option (google.api.http) = {
             post: "/api/fits/movie"
+            body: "*"
+        };
+    };
+
+    rpc GetMosaic(GetMosaicRequest) returns (GetMosaicResponse) {
+        option (google.api.http) = {
+            post: "/api/fits/mosaic"
             body: "*"
         };
     };
