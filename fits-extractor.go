@@ -191,13 +191,14 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	handler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}),
+	apiHandler := handlers.CORS(
 		handlers.AllowedMethods([]string{http.MethodPost, http.MethodGet, http.MethodPut, http.MethodDelete}),
 		handlers.AllowedHeaders([]string{"Authorization", "Content-Type", "Accept-Encoding", "Accept", "Access-Control-Allow-Origin"}),
 	)(mux)
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
-	return http.ListenAndServe(":8081", handler)
+	http.Handle("/api/", apiHandler)
+	http.Handle("/", http.FileServer(http.Dir(ClientPath)))
+	return http.ListenAndServe(":80", nil)
 }
 
 func main() {
