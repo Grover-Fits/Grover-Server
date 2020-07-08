@@ -17,9 +17,9 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/attron/grover-server/api"
 	"github.com/golang/glog"
 	"github.com/gorilla/handlers"
+	"github.com/grover-fits/grover-server/api"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/joho/godotenv"
 	"github.com/siravan/fits"
@@ -124,6 +124,8 @@ func saveImage(h *fits.Unit, name string, meta Metadata) Metadata {
 		prod *= h.Naxis[k]
 	}
 	min, max := h.Stats()
+	log.Println("Minimum Value: ", min)
+	log.Println("Maximum Value: ", max)
 
 	for i := 0; i < prod; i++ {
 		l := i
@@ -198,7 +200,7 @@ func run() error {
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
 	http.Handle("/api/", apiHandler)
 	http.Handle("/", http.FileServer(http.Dir(ClientPath)))
-	return http.ListenAndServe(":80", nil)
+	return http.ListenAndServe(":8080", nil)
 }
 
 func main() {

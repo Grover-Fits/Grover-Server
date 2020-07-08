@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/attron/grover-server/api"
+	"github.com/grover-fits/grover-server/api"
 	"google.golang.org/grpc"
 )
 
@@ -26,7 +26,7 @@ func (*server) GetMovie(ctx context.Context, req *api.GetMovieRequest) (*api.Get
 	for _, s := range sepFiles {
 		sendFiles = sendFiles + " " + ClientPath + s
 	}
-	out, err := exec.Command("./convert-to-video.sh", sendFiles, ClientPath).Output()
+	out, err := exec.Command("./processing/convert-to-video.sh", sendFiles, ClientPath).Output()
 	if err != nil {
 		log.Println(err)
 	}
@@ -46,7 +46,7 @@ func (*server) GetMosaic(ctx context.Context, req *api.GetMosaicRequest) (*api.G
 	for _, s := range sepFiles {
 		sendFiles = sendFiles + " -i " + ClientPath + s
 	}
-	out, err := exec.Command("./convert-to-mosaic.sh", sendFiles, count, ClientPath).Output()
+	out, err := exec.Command("./processing/convert-to-mosaic.sh", sendFiles, count, ClientPath).Output()
 	if err != nil {
 		log.Println(err)
 	}
@@ -101,7 +101,7 @@ func startGrpc() {
 		log.Fatalf("failed to start listener: %v", err)
 	}
 	fmt.Println("Server started successfully!")
-	opts := []grpc.ServerOption{grpc.MaxRecvMsgSize(104857600)}
+	opts := []grpc.ServerOption{grpc.MaxRecvMsgSize(1024 * (20 * 1024))}
 	gServ := grpc.NewServer(opts...)
 	api.RegisterFitsServiceServer(gServ, &server{})
 	gServ.Serve(lis)
