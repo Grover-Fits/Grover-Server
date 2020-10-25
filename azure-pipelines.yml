@@ -5,7 +5,7 @@ resources:
 - repo: self
 
 pool:
-  vmImage: 'ubuntu-20.04'
+  vmImage: 'ubuntu-latest'
 
 variables:
   GOPATH: '$(Agent.BuildDirectory)/gopath' # Go workspace path
