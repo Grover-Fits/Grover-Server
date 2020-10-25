@@ -7,28 +7,24 @@ resources:
 pool:
   vmImage: 'ubuntu-latest'
 
-variables:
-  GOPATH: '$(Agent.BuildDirectory)/gopath' # Go workspace path
-  GOROOT: '$(Agent.BuildDirectory)/go' # Go installation path
-  GOBIN:  '$(GOPATH)/bin' # Go binaries path
-  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
-
 steps:
-- script: |
-    mkdir -p '$(GOBIN)'
-    mkdir -p '$(GOPATH)/pkg'
-    mkdir -p '$(modulePath)'
-    shopt -s extglob
-    mv !(gopath) '$(modulePath)'
-    echo '##vso[task.prependpath]$(GOBIN)'
-    echo '##vso[task.prependpath]$(GOROOT)/bin'
-  displayName: 'Set up the Go workspace'
+- task: GoTool@0
+  inputs:
+    version: '1.15.3'
+- task: Go@0
+  inputs:
+    command: 'get'
+    arguments: '-d'
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+- task: Go@0
+  inputs:
+    command: 'build'
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
 
 - script: |
     echo 'CLIENT_PATH=test_path' > .env
-    go test
     make start
     curl -d '{\"msg\":\"testing123123\"}' -H 'Content-Type: application/json' http://localhost/api/test
     make stop
-  workingDirectory: '$(modulePath)'
-  displayName: 'Get dependencies, then build'
+  workingDirectory: '$(System.DefaultWorkingDirectory)'
+  displayName: 'Build and test'
