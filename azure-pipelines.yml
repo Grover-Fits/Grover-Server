@@ -1,18 +1,34 @@
 trigger:
 - master
 
+resources:
+- repo: self
+
 pool:
   vmImage: 'ubuntu-20.04'
 
 variables:
+  GOPATH: '$(Agent.BuildDirectory)/gopath' # Go workspace path
+  GOROOT: '$(Agent.BuildDirectory)/go' # Go installation path
   GOBIN:  '$(GOPATH)/bin' # Go binaries path
-  GOROOT: '/usr/local/go1.15' # Go installation path
-  GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
 
 steps:
 - script: |
+    mkdir -p '$(GOBIN)'
+    mkdir -p '$(GOPATH)/pkg'
+    mkdir -p '$(modulePath)'
+    shopt -s extglob
+    mv !(gopath) '$(modulePath)'
+    echo '##vso[task.prependpath]$(GOBIN)'
+    echo '##vso[task.prependpath]$(GOROOT)/bin'
+  displayName: 'Set up the Go workspace'
+
+- script: |
     echo 'CLIENT_PATH=test_path' > .env
-    go build .
+    go test
+    make start
+    curl -d '{\"msg\":\"testing123123\"}' -H 'Content-Type: application/json' http://localhost/api/test
+    make stop
   workingDirectory: '$(modulePath)'
   displayName: 'Get dependencies, then build'
